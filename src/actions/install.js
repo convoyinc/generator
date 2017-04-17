@@ -1,18 +1,15 @@
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var assert = require('assert');
-var _ = require('lodash');
-var dargs = require('dargs');
-var async = require('async');
-var chalk = require('chalk');
+const assert = require('assert');
+const _ = require('lodash');
+const dargs = require('dargs');
+const async = require('async');
+const chalk = require('chalk');
 
 /**
  * @mixin
  * @alias actions/install
  */
-var install = module.exports;
+const install = module.exports;
 
 /**
  * Combine package manager cmd line arguments and run the `install` command.
@@ -30,14 +27,12 @@ var install = module.exports;
  */
 
 install.runInstall = function (installer, paths, options, spawnOptions) {
-  var _this = this;
-
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     options = options || {};
     spawnOptions = spawnOptions || {};
-    paths = Array.isArray(paths) ? paths : paths && paths.split(' ') || [];
+    paths = Array.isArray(paths) ? paths : (paths && paths.split(' ')) || [];
 
-    var args = ['install'].concat(paths).concat(dargs(options));
+    let args = ['install'].concat(paths).concat(dargs(options));
 
     // Yarn uses the `add` command to specifically add a package to a project
     if (installer === 'yarn' && paths.length > 0) {
@@ -50,21 +45,26 @@ install.runInstall = function (installer, paths, options, spawnOptions) {
     }
 
     // Return early if we're skipping installation
-    if (_this.options.skipInstall) {
+    if (this.options.skipInstall) {
       return resolve();
     }
 
-    _this.env.runLoop.add('install', function (done) {
-      _this.emit(installer + 'Install', paths);
-      _this.spawnCommand(installer, args, spawnOptions).on('error', function (err) {
-        console.log(chalk.red('Could not finish installation. \n') + 'Please install ' + installer + ' with ' + chalk.yellow('npm install -g ' + installer) + ' and try again.');
-        reject(err);
-        done();
-      }).on('exit', function () {
-        _this.emit(installer + 'Install:end', paths);
-        resolve();
-        done();
-      });
+    this.env.runLoop.add('install', done => {
+      this.emit(`${installer}Install`, paths);
+      this.spawnCommand(installer, args, spawnOptions)
+        .on('error', err => {
+          console.log(chalk.red('Could not finish installation. \n') +
+            'Please install ' + installer + ' with ' +
+            chalk.yellow('npm install -g ' + installer) + ' and try again.'
+          );
+          reject(err);
+          done();
+        })
+        .on('exit', () => {
+          this.emit(`${installer}Install:end`, paths);
+          resolve();
+          done();
+        });
     }, {
       once: installer + ' ' + args.join(' '),
       run: false
@@ -96,50 +96,54 @@ install.runInstall = function (installer, paths, options, spawnOptions) {
  * @return {Promise} Resolved once done, rejected if errors
  */
 install.installDependencies = function (options) {
-  var _this2 = this;
-
   options = options || {};
-  var commands = [];
-  var msg = {
+  const commands = [];
+  const msg = {
     commands: [],
-    template: _.template('\n\nI\'m all done. ' + '<%= skipInstall ? "Just run" : "Running" %> <%= commands %> ' + '<%= skipInstall ? "" : "for you " %>to install the required dependencies.' + '<% if (!skipInstall) { %> If this fails, try running the command yourself.<% } %>\n\n')
+    template: _.template('\n\nI\'m all done. ' +
+    '<%= skipInstall ? "Just run" : "Running" %> <%= commands %> ' +
+    '<%= skipInstall ? "" : "for you " %>to install the required dependencies.' +
+    '<% if (!skipInstall) { %> If this fails, try running the command yourself.<% } %>\n\n')
   };
 
-  var getOptions = function getOptions(options) {
-    return (typeof options === 'undefined' ? 'undefined' : _typeof(options)) === 'object' ? options : null;
+  const getOptions = options => {
+    return typeof options === 'object' ? options : null;
   };
 
   if (options.npm !== false) {
     msg.commands.push('npm install');
-    commands.push(function (cb) {
-      _this2.npmInstall(null, getOptions(options.npm)).then(function (val) {
-        return cb(null, val);
-      }, cb);
+    commands.push(cb => {
+      this.npmInstall(null, getOptions(options.npm)).then(
+        val => cb(null, val),
+        cb
+      );
     });
   }
 
   if (options.yarn) {
     msg.commands.push('yarn install');
-    commands.push(function (cb) {
-      _this2.yarnInstall(null, getOptions(options.yarn)).then(function (val) {
-        return cb(null, val);
-      }, cb);
+    commands.push(cb => {
+      this.yarnInstall(null, getOptions(options.yarn)).then(
+        val => cb(null, val),
+        cb
+      );
     });
   }
 
   if (options.bower !== false) {
     msg.commands.push('bower install');
-    commands.push(function (cb) {
-      _this2.bowerInstall(null, getOptions(options.bower)).then(function (val) {
-        return cb(null, val);
-      }, cb);
+    commands.push(cb => {
+      this.bowerInstall(null, getOptions(options.bower)).then(
+        val => cb(null, val),
+        cb
+      );
     });
   }
 
   assert(msg.commands.length, 'installDependencies needs at least one of `npm`, `bower` or `yarn` to run.');
 
   if (!options.skipMessage) {
-    var tplValues = _.extend({
+    const tplValues = _.extend({
       skipInstall: false
     }, this.options, {
       commands: chalk.yellow.bold(msg.commands.join(' && '))
@@ -147,8 +151,8 @@ install.installDependencies = function (options) {
     this.log(msg.template(tplValues));
   }
 
-  return new Promise(function (resolve, reject) {
-    async.parallel(commands, function (err, results) {
+  return new Promise((resolve, reject) => {
+    async.parallel(commands, (err, results) => {
       if (err) {
         return reject(err);
       }

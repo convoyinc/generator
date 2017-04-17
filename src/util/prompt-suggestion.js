@@ -1,15 +1,12 @@
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var assert = require('assert');
-var _ = require('lodash');
+const assert = require('assert');
+const _ = require('lodash');
 
 /**
  * @module promptSuggestion
  * @description Utilities to allow remembering answers to Inquirer.js prompts
  */
-var promptSuggestion = module.exports;
+const promptSuggestion = module.exports;
 
 /**
  * Returns the default value for a checkbox
@@ -19,32 +16,11 @@ var promptSuggestion = module.exports;
  * @return {*}               Default value to set
  * @private
  */
-var getCheckboxDefault = function getCheckboxDefault(question, defaultValue) {
+const getCheckboxDefault = (question, defaultValue) => {
   // For simplicity we uncheck all boxes and use .default to set the active ones
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = question.choices[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var choice = _step.value;
-
-      if ((typeof choice === 'undefined' ? 'undefined' : _typeof(choice)) === 'object') {
-        choice.checked = false;
-      }
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
+  for (const choice of question.choices) {
+    if (typeof choice === 'object') {
+      choice.checked = false;
     }
   }
 
@@ -59,10 +35,8 @@ var getCheckboxDefault = function getCheckboxDefault(question, defaultValue) {
  * @return {*}                  Default value to set
  * @private
  */
-var getListDefault = function getListDefault(question, defaultValue) {
-  var choiceValues = question.choices.map(function (choice) {
-    return (typeof choice === 'undefined' ? 'undefined' : _typeof(choice)) === 'object' ? choice.value : choice;
-  });
+const getListDefault = (question, defaultValue) => {
+  const choiceValues = question.choices.map(choice => typeof choice === 'object' ? choice.value : choice);
   return choiceValues.indexOf(defaultValue);
 };
 
@@ -76,8 +50,8 @@ var getListDefault = function getListDefault(question, defaultValue) {
  * @return {Boolean}               Answer to be stored
  * @private
  */
-var storeListAnswer = function storeListAnswer(question, answer, storeAll) {
-  var choiceValues = question.choices.map(function (choice) {
+const storeListAnswer = (question, answer, storeAll) => {
+  const choiceValues = question.choices.map(choice => {
     if (Object.prototype.hasOwnProperty.call(choice, 'value')) {
       return choice.value;
     }
@@ -85,7 +59,7 @@ var storeListAnswer = function storeListAnswer(question, answer, storeAll) {
     return choice;
   });
 
-  var choiceIndex = choiceValues.indexOf(answer);
+  const choiceIndex = choiceValues.indexOf(answer);
 
   // Check if answer is not equal to default value
   if (storeAll || question.default !== choiceIndex) {
@@ -105,7 +79,7 @@ var storeListAnswer = function storeListAnswer(question, answer, storeAll) {
  * @return {Boolean}               Answer to be stored
  * @private
  */
-var storeAnswer = function storeAnswer(question, answer, storeAll) {
+const storeAnswer = (question, answer, storeAll) => {
   // Check if answer is not equal to default value or is undefined
   if (answer !== undefined && (storeAll || question.default !== answer)) {
     return true;
@@ -121,11 +95,11 @@ var storeAnswer = function storeAnswer(question, answer, storeAll) {
  * @param  {Array|Object} questions Original prompt questions
  * @return {Array}                  Prompt questions array with prefilled values.
  */
-promptSuggestion.prefillQuestions = function (store, questions) {
+promptSuggestion.prefillQuestions = (store, questions) => {
   assert(store, 'A store parameter is required');
   assert(questions, 'A questions parameter is required');
 
-  var promptValues = store.get('promptValues') || {};
+  const promptValues = store.get('promptValues') || {};
 
   if (!Array.isArray(questions)) {
     questions = [questions];
@@ -134,12 +108,12 @@ promptSuggestion.prefillQuestions = function (store, questions) {
   questions = questions.map(_.clone);
 
   // Write user defaults back to prompt
-  return questions.map(function (question) {
+  return questions.map(question => {
     if (question.store !== true) {
       return question;
     }
 
-    var storedValue = promptValues[question.name];
+    const storedValue = promptValues[question.name];
 
     if (storedValue === undefined) {
       return question;
@@ -171,27 +145,27 @@ promptSuggestion.prefillQuestions = function (store, questions) {
  * @param  {Object}       answers   The inquirer answers
  * @param  {Boolean}      storeAll  Should store default values
  */
-promptSuggestion.storeAnswers = function (store, questions, answers, storeAll) {
+promptSuggestion.storeAnswers = (store, questions, answers, storeAll) => {
   assert(store, 'A store parameter is required');
   assert(answers, 'A answers parameter is required');
   assert(questions, 'A questions parameter is required');
   assert.ok(_.isObject(answers), 'answers must be a object');
 
   storeAll = storeAll || false;
-  var promptValues = store.get('promptValues') || {};
+  const promptValues = store.get('promptValues') || {};
 
   if (!Array.isArray(questions)) {
     questions = [questions];
   }
 
-  _.each(questions, function (question) {
+  _.each(questions, question => {
     if (question.store !== true) {
       return;
     }
 
-    var saveAnswer = void 0;
-    var key = question.name;
-    var answer = answers[key];
+    let saveAnswer;
+    const key = question.name;
+    const answer = answers[key];
 
     switch (question.type) {
       case 'rawlist':

@@ -1,34 +1,45 @@
 'use strict';
-
-var path = require('path');
-var fs = require('fs');
-var _ = require('lodash');
-var table = require('text-table');
+const path = require('path');
+const fs = require('fs');
+const _ = require('lodash');
+const table = require('text-table');
 
 /**
  * @mixin
  * @alias actions/help
  */
-var help = module.exports;
+const help = module.exports;
 
 /**
  * Tries to get the description from a USAGE file one folder above the
  * source root otherwise uses a default description
  */
 help.help = function () {
-  var filepath = path.resolve(this.sourceRoot(), '../USAGE');
-  var exists = fs.existsSync(filepath);
+  const filepath = path.resolve(this.sourceRoot(), '../USAGE');
+  const exists = fs.existsSync(filepath);
 
-  var out = ['Usage:', '  ' + this.usage(), ''];
+  let out = [
+    'Usage:',
+    '  ' + this.usage(),
+    ''
+  ];
 
   // Build options
   if (Object.keys(this._options).length > 0) {
-    out = out.concat(['Options:', this.optionsHelp(), '']);
+    out = out.concat([
+      'Options:',
+      this.optionsHelp(),
+      ''
+    ]);
   }
 
   // Build arguments
   if (this._arguments.length > 0) {
-    out = out.concat(['Arguments:', this.argumentsHelp(), '']);
+    out = out.concat([
+      'Arguments:',
+      this.argumentsHelp(),
+      ''
+    ]);
   }
 
   // Append USAGE file is any
@@ -40,10 +51,10 @@ help.help = function () {
 };
 
 function formatArg(config) {
-  var arg = '<' + config.name + '>';
+  let arg = `<${config.name}>`;
 
   if (!config.required) {
-    arg = '[' + arg + ']';
+    arg = `[${arg}]`;
   }
 
   return arg;
@@ -54,16 +65,16 @@ function formatArg(config) {
  * or options
  */
 help.usage = function () {
-  var options = Object.keys(this._options).length ? '[options]' : '';
-  var name = this.options.namespace;
-  var args = '';
+  const options = Object.keys(this._options).length ? '[options]' : '';
+  let name = this.options.namespace;
+  let args = '';
 
   if (this._arguments.length > 0) {
     args = this._arguments.map(formatArg).join(' ');
   }
 
   name = name.replace(/^yeoman:/, '');
-  var out = 'yo ' + name + ' ' + options + ' ' + args;
+  let out = `yo ${name} ${options} ${args}`;
 
   if (this.description) {
     out += '\n\n' + this.description;
@@ -88,8 +99,14 @@ help.desc = function (description) {
  * @returns {String} Text of options in formatted table
  */
 help.argumentsHelp = function () {
-  var rows = this._arguments.map(function (config) {
-    return ['', config.name ? config.name : '', config.description ? '# ' + config.description : '', config.type ? 'Type: ' + config.type.name : '', 'Required: ' + config.required];
+  const rows = this._arguments.map(config => {
+    return [
+      '',
+      config.name ? config.name : '',
+      config.description ? `# ${config.description}` : '',
+      config.type ? `Type: ${config.type.name}` : '',
+      `Required: ${config.required}`
+    ];
   });
 
   return table(rows);
@@ -100,12 +117,16 @@ help.argumentsHelp = function () {
  * @returns {String} Text of options in formatted table
  */
 help.optionsHelp = function () {
-  var options = _.reject(this._options, function (x) {
-    return x.hide;
-  });
+  const options = _.reject(this._options, x => x.hide);
 
-  var rows = options.map(function (opt) {
-    return ['', opt.alias ? '-' + opt.alias + ', ' : '', '--' + opt.name, opt.description ? '# ' + opt.description : '', opt.default !== undefined && opt.default !== '' ? 'Default: ' + opt.default : ''];
+  const rows = options.map(opt => {
+    return [
+      '',
+      opt.alias ? `-${opt.alias}, ` : '',
+      `--${opt.name}`,
+      opt.description ? `# ${opt.description}` : '',
+      (opt.default !== undefined && opt.default !== '') ? 'Default: ' + opt.default : ''
+    ];
   });
 
   return table(rows);

@@ -1,16 +1,15 @@
 'use strict';
+const shell = require('shelljs');
+const githubUsername = require('github-username');
 
-var shell = require('shelljs');
-var githubUsername = require('github-username');
-
-var nameCache = new Map();
-var emailCache = new Map();
+const nameCache = new Map();
+const emailCache = new Map();
 
 /**
  * @mixin
  * @alias actions/user
  */
-var user = module.exports;
+const user = module.exports;
 
 user.git = {};
 user.github = {};
@@ -20,15 +19,15 @@ user.github = {};
  * (it'll take what Git will use in the current context)
  * @return {String} configured git name or undefined
  */
-user.git.name = function () {
-  var name = nameCache.get(process.cwd());
+user.git.name = () => {
+  let name = nameCache.get(process.cwd());
 
   if (name) {
     return name;
   }
 
   if (shell.which('git')) {
-    name = shell.exec('git config --get user.name', { silent: true }).stdout.trim();
+    name = shell.exec('git config --get user.name', {silent: true}).stdout.trim();
     nameCache.set(process.cwd(), name);
   }
 
@@ -40,15 +39,15 @@ user.git.name = function () {
  * (it'll take what Git will use in the current context)
  * @return {String} configured git email or undefined
  */
-user.git.email = function () {
-  var email = emailCache.get(process.cwd());
+user.git.email = () => {
+  let email = emailCache.get(process.cwd());
 
   if (email) {
     return email;
   }
 
   if (shell.which('git')) {
-    email = shell.exec('git config --get user.email', { silent: true }).stdout.trim();
+    email = shell.exec('git config --get user.email', {silent: true}).stdout.trim();
     emailCache.set(process.cwd(), email);
   }
 
@@ -60,6 +59,4 @@ user.git.email = function () {
  * @return {Promise} Resolved with the GitHub username or rejected if unable to
  *                   get the information
  */
-user.github.username = function () {
-  return githubUsername(user.git.email());
-};
+user.github.username = () => githubUsername(user.git.email());
